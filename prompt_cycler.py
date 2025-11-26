@@ -51,6 +51,10 @@ class PromptCycler:
                 "reset_cycle": ("BOOLEAN", {
                     "default": False,
                     "display": "checkbox"
+                }),
+                "seed_spintax": ("BOOLEAN", {
+                    "default": False,
+                    "display": "checkbox"
                 })
             }
         }
@@ -62,16 +66,17 @@ class PromptCycler:
 
     seed = 0
 
-    def cycle_prompt(self, seed: int, append: str, cycle_mode: str, reset_cycle: bool):
+    def cycle_prompt(self, seed: int, append: str, cycle_mode: str, reset_cycle: bool, seed_spintax: bool):
         """
         Cycle through prompts and return the current one.
         Supports infinite number of prompts via custom_prompts input.
         
         Args:
             seed: Random seed for reproducible results
+            append: A Text (Spintax) to append to the randomly chosen prompt
             cycle_mode: "sequential" or "random" cycling
             reset_cycle: Whether to reset the cycle counter
-            custom_prompts: Optional custom prompts (one per line). If empty, uses example prompts.
+            seed_spintax: Wether to seed spintax with the seed input too
         
         Returns:
             Tuple of (current_prompt, cycle_index)
@@ -108,8 +113,11 @@ class PromptCycler:
         prompt = prompt + ", " + append
 
         self.execution_count += 1
-        
-        return (spintax.spin(prompt, seed=seed), cycle_index)
+       
+        if seed_spintax:
+            return (spintax.spin(prompt, seed=seed), cycle_index)
+        else:
+            return (spintax.spin(prompt), cycle_index)
 
 
 # Node class mapping for ComfyUI
