@@ -1,6 +1,7 @@
 import torch
 import random
-from typing import List, Tuple, Any
+from pathlib import Path
+import spintax
 
 class PromptCycler:
     """
@@ -21,26 +22,16 @@ class PromptCycler:
             "A bustling marketplace in an ancient city",
             "A serene lake with mountains reflected in the water",
             "A steampunk laboratory with brass gears and steam",
-            "A magical garden with glowing flowers and butterflies"
+            "A magical garden with glowing flowers and butterflies",
+            "A battlefield in the morning dusk littered with corpses"
         ]
+
         self.current_index = 0
         self.execution_count = 0
+        self.seed = 0
 
     @classmethod
     def INPUT_TYPES(cls):
-        # Create default prompts string from example prompts
-        default_prompts = "\n".join([
-            "A majestic mountain landscape at sunset with golden light",
-            "A futuristic city with flying cars and neon lights",
-            "A peaceful forest with sunlight filtering through trees",
-            "An underwater scene with colorful coral reefs and fish",
-            "A cozy cabin in the woods during winter snowfall",
-            "A space station orbiting a distant planet",
-            "A bustling marketplace in an ancient city",
-            "A serene lake with mountains reflected in the water",
-            "A steampunk laboratory with brass gears and steam",
-            "A magical garden with glowing flowers and butterflies"
-        ])
         
         return {
             "required": {
@@ -51,20 +42,15 @@ class PromptCycler:
                     "step": 1,
                     "display": "number"
                 }),
+                "append": ("STRING", {
+                    "default": ""
+                }),
                 "cycle_mode": (["sequential", "random"], {
-                    "default": "sequential"
+                    "default": "random"
                 }),
                 "reset_cycle": ("BOOLEAN", {
                     "default": False,
                     "display": "checkbox"
-                })
-            },
-            "optional": {
-                "custom_prompts": ("STRING", {
-                    "multiline": True,
-                    "default": default_prompts,
-                    "display": "text",
-                    "tooltip": "Enter your own prompts, one per line. Default shows example prompts."
                 })
             }
         }
@@ -74,7 +60,9 @@ class PromptCycler:
     FUNCTION = "cycle_prompt"
     CATEGORY = "text/prompt"
 
-    def cycle_prompt(self, seed: int, cycle_mode: str, reset_cycle: bool, custom_prompts: str = ""):
+    seed = 0
+
+    def cycle_prompt(self, seed: int, append: str, cycle_mode: str, reset_cycle: bool):
         """
         Cycle through prompts and return the current one.
         Supports infinite number of prompts via custom_prompts input.
@@ -88,19 +76,22 @@ class PromptCycler:
         Returns:
             Tuple of (current_prompt, cycle_index)
         """
+
+        # load file on every effin run please
+        # FIXME: this should probably be customizable
+        if Path("/data/claus/src/comfy/prompts.txt").exists():
+            self.example_prompts = Path("/data/claus/src/comfy/prompts.txt").read_text().splitlines()
+
         # Use custom prompts if provided, otherwise use example prompts
         prompts_to_use = self.example_prompts
-        if custom_prompts.strip():
-            custom_list = [p.strip() for p in custom_prompts.split('\n') if p.strip()]
-            if custom_list:
-                prompts_to_use = custom_list
-        
+
         # Reset cycle if requested
         if reset_cycle:
             self.current_index = 0
             self.execution_count = 0
         
         # Set random seed for reproducible results
+        self.seed = seed
         if seed != 0:
             random.seed(seed)
             torch.manual_seed(seed)
@@ -113,18 +104,13 @@ class PromptCycler:
         else:  # random mode
             cycle_index = random.randint(0, len(prompts_to_use) - 1)
             prompt = prompts_to_use[cycle_index]
-        
+
+        prompt = prompt + ", " + append
+
         self.execution_count += 1
         
-        return (prompt, cycle_index)
+        return (spintax.spin(prompt, seed=seed), cycle_index)
 
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        """
-        This method determines if the node should be re-executed.
-        We'll make it change every time to ensure cycling works properly.
-        """
-        return float("nan")  # Always re-execute
 
 # Node class mapping for ComfyUI
 NODE_CLASS_MAPPINGS = {
