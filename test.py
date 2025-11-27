@@ -5,5 +5,5 @@ if __name__ == "__main__":
 
     prompt = "{red|green|blue} does {booo|baaah}"
 
-    print(cycler.cycle_prompt(seed=0, append=prompt, cycle_mode="random", reset_cycle=False, seed_spintax=False))
+    print(cycler.cycle_prompt(seed=0, append=prompt, filename="prompt.txt", cycle_mode="random", reset_cycle=False))
 

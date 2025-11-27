@@ -2,6 +2,7 @@ import torch
 import random
 from pathlib import Path
 import spintax
+import glob
 
 class PromptCycler:
     """
@@ -30,8 +31,12 @@ class PromptCycler:
         self.execution_count = 0
         self.seed = 0
 
+
     @classmethod
     def INPUT_TYPES(cls):
+        filenames = glob.glob("/data/claus/src/comfy/*.txt")
+        if len(filenames) == 0:
+            filenames = ["prompts.txt"]
         
         return {
             "required": {
@@ -42,8 +47,8 @@ class PromptCycler:
                     "step": 1,
                     "display": "number"
                 }),
-                "append": ("STRING", {
-                    "default": ""
+                "filename": (filenames, {
+                    "default": filenames[0]
                 }),
                 "cycle_mode": (["sequential", "random"], {
                     "default": "random"
@@ -52,7 +57,12 @@ class PromptCycler:
                     "default": False,
                     "display": "checkbox"
                 })
-            }
+            },
+            "optional": {
+                "append": ("STRING", {
+                    "default": ""
+                }),
+            },
         }
 
     RETURN_TYPES = ("STRING", "INT")
@@ -62,7 +72,7 @@ class PromptCycler:
 
     seed = 0
 
-    def cycle_prompt(self, seed: int, append: str, cycle_mode: str, reset_cycle: bool):
+    def cycle_prompt(self, seed: int, append: str, cycle_mode: str, reset_cycle: bool, filename: str = ""):
         """
         Cycle through prompts and return the current one.
         Supports infinite number of prompts via custom_prompts input.
@@ -79,8 +89,8 @@ class PromptCycler:
 
         # load file on every effin run please
         # FIXME: this should probably be customizable
-        if Path("/data/claus/src/comfy/prompts.txt").exists():
-            self.example_prompts = Path("/data/claus/src/comfy/prompts.txt").read_text().splitlines()
+        if Path(filename).exists():
+            self.example_prompts = Path(filename).read_text().splitlines()
 
         # Use custom prompts if provided, otherwise use example prompts
         prompts_to_use = self.example_prompts
