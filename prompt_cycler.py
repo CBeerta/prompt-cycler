@@ -28,7 +28,6 @@ class PromptCycler:
         ]
 
         self.current_index = 0
-        self.execution_count = 0
         self.seed = 0
 
 
@@ -98,7 +97,6 @@ class PromptCycler:
         # Reset cycle if requested
         if reset_cycle:
             self.current_index = 0
-            self.execution_count = 0
         
         # Set random seed for reproducible results
         self.seed = seed
@@ -107,18 +105,17 @@ class PromptCycler:
             torch.manual_seed(seed)
         
         # Choose prompt based on cycle mode
-        if cycle_mode == "sequential":
-            prompt = prompts_to_use[self.current_index % len(prompts_to_use)]
+        if len(prompts_to_use) == 0:
+            prompt = append
+            cycle_index = 0
+        elif cycle_mode == "sequential":
+            prompt = prompts_to_use[self.current_index % len(prompts_to_use)] + ", " + append
             cycle_index = self.current_index % len(prompts_to_use)
             self.current_index += 1
         else:  # random mode
             cycle_index = random.randint(0, len(prompts_to_use) - 1)
-            prompt = prompts_to_use[cycle_index]
+            prompt = prompts_to_use[cycle_index] + ", " + append
 
-        prompt = prompt + ", " + append
-
-        self.execution_count += 1
-       
         return (spintax.spin(prompt, seed=seed), cycle_index)
 
 
