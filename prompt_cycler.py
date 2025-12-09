@@ -49,12 +49,9 @@ class PromptCycler:
                 "filename": (filenames, {
                     "default": filenames[0]
                 }),
-                "cycle_mode": (["sequential", "random"], {
-                    "default": "random"
-                }),
-                "reset_cycle": ("BOOLEAN", {
-                    "default": False,
-                    "display": "checkbox"
+                "prompt_index": ("INT", {
+                    "default": -1,
+                    "display": "number"
                 })
             },
             "optional": {
@@ -71,7 +68,7 @@ class PromptCycler:
 
     seed = 0
 
-    def cycle_prompt(self, seed: int, append: str, cycle_mode: str, reset_cycle: bool, filename: str = ""):
+    def cycle_prompt(self, seed: int, append: str, prompt_index: int, filename: str = ""):
         """
         Cycle through prompts and return the current one.
         Supports infinite number of prompts via custom_prompts input.
@@ -94,24 +91,21 @@ class PromptCycler:
         # Use custom prompts if provided, otherwise use example prompts
         prompts_to_use = self.example_prompts
 
-        # Reset cycle if requested
-        if reset_cycle:
-            self.current_index = 0
-        
         # Set random seed for reproducible results
         self.seed = seed
         if seed != 0:
             random.seed(seed)
             torch.manual_seed(seed)
         
-        # Choose prompt based on cycle mode
-        if len(prompts_to_use) == 0:
+        cycle_index = prompt_index
+
+        if prompt_index >= 0: # index mode
+            if prompt_index > len(prompts_to_use):
+                prompt = append
+            else:
+                prompt = prompts_to_use[prompt_index] + ", " + append
+        elif len(prompts_to_use) == 0:
             prompt = append
-            cycle_index = 0
-        elif cycle_mode == "sequential":
-            prompt = prompts_to_use[self.current_index % len(prompts_to_use)] + ", " + append
-            cycle_index = self.current_index % len(prompts_to_use)
-            self.current_index += 1
         else:  # random mode
             cycle_index = random.randint(0, len(prompts_to_use) - 1)
             prompt = prompts_to_use[cycle_index] + ", " + append
