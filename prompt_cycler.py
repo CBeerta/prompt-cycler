@@ -50,7 +50,8 @@ class PromptCycler:
                     "default": filenames[0]
                 }),
                 "prompt_index": ("INT", {
-                    "default": -1,
+                    "default": 0,
+                    "min": 0,
                     "display": "number"
                 })
             },
@@ -84,7 +85,6 @@ class PromptCycler:
         """
 
         # load file on every effin run please
-        # FIXME: this should probably be customizable
         if Path(filename).exists():
             self.example_prompts = Path(filename).read_text().splitlines()
 
@@ -99,12 +99,12 @@ class PromptCycler:
         
         cycle_index = prompt_index
 
-        if prompt_index >= 0: # index mode
+        if prompt_index > 0: # index mode
             if prompt_index > len(prompts_to_use):
                 prompt = append
             else:
-                prompt = prompts_to_use[prompt_index] + ", " + append
-        elif len(prompts_to_use) == 0:
+                prompt = prompts_to_use[prompt_index - 1] + ", " + append
+        elif len(prompts_to_use) == 0: # no prompts in file, just append
             prompt = append
         else:  # random mode
             cycle_index = random.randint(0, len(prompts_to_use) - 1)
