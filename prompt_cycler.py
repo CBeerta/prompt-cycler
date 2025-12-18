@@ -59,6 +59,9 @@ class PromptCycler:
                 "append": ("STRING", {
                     "default": ""
                 }),
+                "trigger_words": ("STRING", {
+                    "default": ""
+                }),
             },
         }
 
@@ -69,7 +72,7 @@ class PromptCycler:
 
     seed = 0
 
-    def cycle_prompt(self, seed: int, append: str, prompt_index: int, filename: str = ""):
+    def cycle_prompt(self, seed: int, append: str, trigger_words: str, prompt_index: int, filename: str = ""):
         """
         Cycle through prompts and return the current one.
         Supports infinite number of prompts via custom_prompts input.
@@ -99,16 +102,18 @@ class PromptCycler:
         
         cycle_index = prompt_index
 
+        appends = append + (f", {trigger_words}" if trigger_words else "")
+
         if prompt_index > 0: # index mode
             if prompt_index > len(prompts_to_use):
-                prompt = append
+                prompt = appends
             else:
                 prompt = prompts_to_use[prompt_index - 1] + ", " + append
         elif len(prompts_to_use) == 0: # no prompts in file, just append
-            prompt = append
+            prompt = appends
         else:  # random mode
             cycle_index = random.randint(0, len(prompts_to_use) - 1)
-            prompt = prompts_to_use[cycle_index] + ", " + append
+            prompt = prompts_to_use[cycle_index] + ", " + appends
 
         return (spintax.spin(prompt, seed=seed), cycle_index)
 
