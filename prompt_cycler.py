@@ -108,7 +108,7 @@ class PromptCycler:
             if prompt_index > len(prompts_to_use):
                 prompt = appends
             else:
-                prompt = prompts_to_use[prompt_index - 1] + ", " + append
+                prompt = prompts_to_use[prompt_index - 1] + ", " + appends
         elif len(prompts_to_use) == 0: # no prompts in file, just append
             prompt = appends
         else:  # random mode
