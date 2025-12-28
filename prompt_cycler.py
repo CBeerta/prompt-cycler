@@ -72,7 +72,7 @@ class PromptCycler:
 
     seed = 0
 
-    def cycle_prompt(self, seed: int, append: str, trigger_words: str, prompt_index: int, filename: str = ""):
+    def cycle_prompt(self, seed, append, trigger_words, prompt_index, filename = ""):
         """
         Cycle through prompts and return the current one.
         Supports infinite number of prompts via custom_prompts input.
@@ -102,20 +102,39 @@ class PromptCycler:
         
         cycle_index = prompt_index
 
-        appends = append + (f", {trigger_words}" if trigger_words else "")
+        if not isinstance(append, list):
+            appends = list([append])
+        else:
+            appends = append
 
-        if prompt_index > 0: # index mode
-            if prompt_index > len(prompts_to_use):
-                prompt = appends
-            else:
-                prompt = prompts_to_use[prompt_index - 1] + ", " + appends
-        elif len(prompts_to_use) == 0: # no prompts in file, just append
-            prompt = appends
-        else:  # random mode
-            cycle_index = random.randint(0, len(prompts_to_use) - 1)
-            prompt = prompts_to_use[cycle_index] + ", " + appends
+        prompts = []
 
-        return (spintax.spin(prompt, seed=seed), cycle_index)
+        for append in appends:
+                           
+            to_append = append + (f", {trigger_words}" if trigger_words else "")
+
+            if prompt_index > 0: # index mode
+                if len(prompts_to_use) == 0:
+                    prompt = to_append
+                elif prompt_index > len(prompts_to_use):
+                    prompt = prompts_to_use[len(prompts_to_use) - 1] + ", " + to_append
+                    cycle_index = len(prompts_to_use) - 1
+                else:
+                    prompt = prompts_to_use[prompt_index - 1] + ", " + to_append
+
+            elif len(prompts_to_use) == 0: # no prompts in file, just append
+                prompt = to_append
+
+            else:  # random mode
+                cycle_index = random.randint(0, len(prompts_to_use) - 1)
+                prompt = prompts_to_use[cycle_index] + ", " + to_append
+
+            prompts.append(spintax.spin(prompt, seed=seed))
+
+        if len(prompts) > 1:
+            return (prompts, cycle_index)
+        else:
+            return (prompts[0], cycle_index)
 
 
 # Node class mapping for ComfyUI
