@@ -115,6 +115,12 @@ class PromptCycler:
             cycle_index = random.randint(0, len(prompts_to_use) - 1)
             prompt = prompts_to_use[cycle_index] + ", " + appends
 
+        if ';' in prompt: 
+            description = prompt.split(';')[0].strip()
+            prompt = prompt.split(';')[1].strip()
+        else:
+            description = "n/a"
+
         return (spintax.spin(prompt, seed=seed), cycle_index)
 
 
