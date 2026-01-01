@@ -11,4 +11,5 @@ if __name__ == "__main__":
     print(cycler.cycle_prompt(seed=0, append=prompt, trigger_words="lala", filename="empty.txt", prompt_index=0))
 
     print(cycler.cycle_prompt(seed=0, append=prompt, trigger_words="lala", filename="testfile.txt", prompt_index=0))
+    print(cycler.cycle_prompt(seed=0, append=prompt, trigger_words="", filename="testfile.txt", prompt_index=0))
 

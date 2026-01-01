@@ -65,8 +65,8 @@ class PromptCycler:
             },
         }
 
-    RETURN_TYPES = ("STRING", "INT")
-    RETURN_NAMES = ("prompt", "cycle_index")
+    RETURN_TYPES = ("STRING", "INT", "STRING")
+    RETURN_NAMES = ("prompt", "cycle_index", "description")
     FUNCTION = "cycle_prompt"
     CATEGORY = "text/prompt"
 
@@ -102,7 +102,7 @@ class PromptCycler:
         
         cycle_index = prompt_index
 
-        appends = append + (f", {trigger_words}" if trigger_words else "")
+        appends = append + (f", {trigger_words}, " if trigger_words else ", ")
 
         if prompt_index > 0: # index mode
             if prompt_index > len(prompts_to_use):
@@ -117,11 +117,11 @@ class PromptCycler:
 
         if ';' in prompt: 
             description = prompt.split(';')[0].strip()
-            prompt = prompt.split(';')[1].strip()
+            prompt = prompt.split(';')[1]
         else:
             description = "n/a"
 
-        return (spintax.spin(prompt, seed=seed), cycle_index)
+        return (spintax.spin(prompt, seed=seed), cycle_index, description)
 
 
 # Node class mapping for ComfyUI
