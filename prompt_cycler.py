@@ -4,13 +4,14 @@ from pathlib import Path
 import spintax
 import glob
 
+
 class PromptCycler:
     """
     A ComfyUI custom node that cycles through an infinite number of prompts.
     Supports both built-in example prompts and custom user-defined prompts.
     Each time the node is executed, it returns the next prompt in sequence or randomly.
     """
-    
+
     def __init__(self):
         # Example prompts - users can provide their own via custom_prompts
         self.example_prompts = [
@@ -30,13 +31,12 @@ class PromptCycler:
         self.current_index = 0
         self.seed = 0
 
-
     @classmethod
     def INPUT_TYPES(cls):
         filenames = glob.glob("/data/claus/src/comfy/*.txt")
         if len(filenames) == 0:
             filenames = ["prompts.txt"]
-        
+
         return {
             "required": {
                 "seed": ("INT", {
@@ -76,13 +76,13 @@ class PromptCycler:
         """
         Cycle through prompts and return the current one.
         Supports infinite number of prompts via custom_prompts input.
-        
+
         Args:
             seed: Random seed for reproducible results
             append: A Text (Spintax) to append to the randomly chosen prompt
             cycle_mode: "sequential" or "random" cycling
             reset_cycle: Whether to reset the cycle counter
-        
+
         Returns:
             Tuple of (current_prompt, cycle_index)
         """
@@ -99,23 +99,23 @@ class PromptCycler:
         if seed != 0:
             random.seed(seed)
             torch.manual_seed(seed)
-        
+
         cycle_index = prompt_index
 
         appends = append + (f", {trigger_words}, " if trigger_words else ", ")
 
-        if prompt_index > 0: # index mode
+        if prompt_index > 0:  # index mode
             if prompt_index > len(prompts_to_use):
                 prompt = appends
             else:
                 prompt = prompts_to_use[prompt_index - 1] + ", " + appends
-        elif len(prompts_to_use) == 0: # no prompts in file, just append
+        elif len(prompts_to_use) == 0:  # no prompts in file, just append
             prompt = appends
         else:  # random mode
             cycle_index = random.randint(0, len(prompts_to_use) - 1)
             prompt = prompts_to_use[cycle_index] + ", " + appends
 
-        if ';' in prompt: 
+        if ';' in prompt:
             description = prompt.split(';')[0].strip()
             prompt = prompt.split(';')[1]
         else:
