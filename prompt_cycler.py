@@ -51,7 +51,7 @@ class PromptCycler:
                 }),
                 "prompt_index": ("INT", {
                     "default": 0,
-                    "min": 0,
+                    "min": -1,
                     "display": "number"
                 })
             },
@@ -104,7 +104,7 @@ class PromptCycler:
 
         appends = append + (f", {trigger_words}, " if trigger_words else ", ")
 
-        if prompt_index > 0:  # index mode
+        if prompt_index > 0 and prompt_index < len(prompts_to_use):  # index mode
             if prompt_index > len(prompts_to_use):
                 prompt = appends
             else:
