@@ -1,6 +1,6 @@
 import torch
 import random
-import fnmatch
+import re
 from pathlib import Path
 import spintax
 import glob
@@ -136,8 +136,8 @@ class CheckpointCycler:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "wildcard": ("STRING", {
-                    "default": "*",
+                "pattern": ("STRING", {
+                    "default": ".",
                     "multiline": False,
                 }),
                 "seed": ("INT", {
@@ -167,9 +167,9 @@ class CheckpointCycler:
         """Get the full path to a checkpoint by name."""
         return folder_paths.get_full_path("checkpoints", ckpt_name) or ""
 
-    def cycle_checkpoint(self, wildcard: str, seed: int, switch_every: int = 1):
+    def cycle_checkpoint(self, pattern: str, seed: int, switch_every: int = 1):
         all_ckpts = self._get_all_checkpoints()
-        matched = [c for c in all_ckpts if fnmatch.fnmatch(c, wildcard)]
+        matched = [c for c in all_ckpts if re.search(pattern, c)]
         matched.sort()
 
         if not matched:
