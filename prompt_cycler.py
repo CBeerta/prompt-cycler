@@ -5,10 +5,7 @@ from pathlib import Path
 import spintax
 import glob
 
-try:
-    import folder_paths
-except ImportError:
-    folder_paths = None
+import folder_paths
 
 
 class PromptCycler:
@@ -154,26 +151,18 @@ class CheckpointCycler:
             },
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "INT", "INT")
-    RETURN_NAMES = ("ckpt_name", "ckpt_path", "cycle_index", "total")
+    RETURN_TYPES = ("STRING")
+    RETURN_NAMES = ("ckpt_name")
     FUNCTION = "cycle_checkpoint"
     CATEGORY = "text/prompt"
 
     def _get_all_checkpoints(self):
         """Get all checkpoint filenames from ComfyUI's checkpoint directory."""
-        if folder_paths is not None:
-            return folder_paths.get_filename_list("checkpoints")
-        base = Path("/data/claus/src/comfy/models/checkpoints")
-        if not base.exists():
-            return []
-        return [str(p.relative_to(base)) for p in base.rglob("*")
-                if p.suffix.lower() in (".safetensors", ".ckpt", ".pt", ".pth")]
+        return folder_paths.get_filename_list("checkpoints")
 
     def _get_checkpoint_path(self, ckpt_name):
         """Get the full path to a checkpoint by name."""
-        if folder_paths is not None:
-            return folder_paths.get_full_path("checkpoints", ckpt_name) or ""
-        return str(Path("/data/claus/src/comfy/models/checkpoints") / ckpt_name)
+        return folder_paths.get_full_path("checkpoints", ckpt_name) or ""
 
     def cycle_checkpoint(self, wildcard: str, seed: int, ckpt_index: int):
         all_ckpts = self._get_all_checkpoints()
@@ -192,8 +181,7 @@ class CheckpointCycler:
             idx = random.randint(0, len(matched) - 1)
 
         ckpt = matched[idx]
-        ckpt_path = self._get_checkpoint_path(ckpt)
-        return (ckpt, ckpt_path, idx, len(matched))
+        return (ckpt)
 
 
 # Node class mapping for ComfyUI
