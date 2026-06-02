@@ -128,6 +128,10 @@ class PromptCycler:
 
 
 class CheckpointCycler:
+    def __init__(self):
+        self._counter = 0
+        self._current_idx = 0
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -148,6 +152,11 @@ class CheckpointCycler:
                     "min": -1,
                     "display": "number"
                 }),
+                "switch_every": ("INT", {
+                    "default": 1,
+                    "min": 1,
+                    "display": "number"
+                }),
             },
         }
 
@@ -164,24 +173,35 @@ class CheckpointCycler:
         """Get the full path to a checkpoint by name."""
         return folder_paths.get_full_path("checkpoints", ckpt_name) or ""
 
-    def cycle_checkpoint(self, wildcard: str, seed: int, ckpt_index: int):
+    def cycle_checkpoint(self, wildcard: str, seed: int, ckpt_index: int, switch_every: int = 1):
         all_ckpts = self._get_all_checkpoints()
         matched = [c for c in all_ckpts if fnmatch.fnmatch(c, wildcard)]
         matched.sort()
 
         if not matched:
-            return ("", "", -1, 0)
+            return ("",)
 
         if seed != 0:
             random.seed(seed)
 
         if ckpt_index >= 0 and ckpt_index < len(matched):
+            # Explicit index mode — no cycling, use directly
             idx = ckpt_index
-        else:
+        elif switch_every == 1:
+            # Original behavior: random every time
             idx = random.randint(0, len(matched) - 1)
+        else:
+            # Cycling mode: stay on each checkpoint for switch_every calls
+            if self._counter == 0:
+                self._current_idx = random.randint(0, len(matched) - 1)
+            elif self._counter >= switch_every:
+                self._current_idx = (self._current_idx + 1) % len(matched)
+                self._counter = 0
+            idx = self._current_idx
 
+        self._counter += 1
         ckpt = matched[idx]
-        return (ckpt)
+        return (ckpt,)
 
 
 # Node class mapping for ComfyUI
