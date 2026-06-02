@@ -147,11 +147,6 @@ class CheckpointCycler:
                     "step": 1,
                     "display": "number"
                 }),
-                "ckpt_index": ("INT", {
-                    "default": -1,
-                    "min": -1,
-                    "display": "number"
-                }),
                 "switch_every": ("INT", {
                     "default": 1,
                     "min": 1,
@@ -160,8 +155,7 @@ class CheckpointCycler:
             },
         }
 
-    RETURN_TYPES = ("STRING")
-    RETURN_NAMES = ("ckpt_name")
+    RETURN_TYPES = ("STRING",)
     FUNCTION = "cycle_checkpoint"
     CATEGORY = "text/prompt"
 
@@ -173,7 +167,7 @@ class CheckpointCycler:
         """Get the full path to a checkpoint by name."""
         return folder_paths.get_full_path("checkpoints", ckpt_name) or ""
 
-    def cycle_checkpoint(self, wildcard: str, seed: int, ckpt_index: int, switch_every: int = 1):
+    def cycle_checkpoint(self, wildcard: str, seed: int, switch_every: int = 1):
         all_ckpts = self._get_all_checkpoints()
         matched = [c for c in all_ckpts if fnmatch.fnmatch(c, wildcard)]
         matched.sort()
@@ -184,10 +178,7 @@ class CheckpointCycler:
         if seed != 0:
             random.seed(seed)
 
-        if ckpt_index >= 0 and ckpt_index < len(matched):
-            # Explicit index mode — no cycling, use directly
-            idx = ckpt_index
-        elif switch_every == 1:
+        if switch_every == 1:
             # Original behavior: random every time
             idx = random.randint(0, len(matched) - 1)
         else:
