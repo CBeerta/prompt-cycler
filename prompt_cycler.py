@@ -3,9 +3,13 @@ import random
 import re
 from pathlib import Path
 import spintax
+import json
 import glob
 
-import folder_paths
+try:
+    import folder_paths
+except ModuleNotFoundError:
+    pass
 
 
 class PromptCycler:
@@ -134,6 +138,7 @@ class CheckpointCycler:
 
     @classmethod
     def INPUT_TYPES(cls):
+
         return {
             "required": {
                 "pattern": ("STRING", {
@@ -195,13 +200,85 @@ class CheckpointCycler:
         return (ckpt,)
 
 
+def _load_styles():
+    # style_file = Path(__file__).parent / "test-styles.json.json"
+    # FIXME
+    style_file = Path("/data/claus/src/comfy/easy-my-styles.json")
+    if style_file.exists():
+        with open(style_file) as f:
+            return json.load(f)
+    return []
+
+
+class StyleCycler:
+    def __init__(self):
+        self._counter = 0
+        self._current_idx = 0
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        styles = _load_styles()
+        style_names = [s["name"] for s in styles]
+        return {
+            "required": {
+                "style": (["random"] + style_names, {
+                    "default": "random"
+                }),
+                "seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                    "step": 1,
+                    "display": "number"
+                }),
+                "switch_every": ("INT", {
+                    "default": 5,
+                    "min": 1,
+                    "display": "number"
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "STRING")
+    RETURN_NAMES = ("prompt", "negative_prompt", "style_name")
+    FUNCTION = "cycle_style"
+    CATEGORY = "text/prompt"
+
+    def cycle_style(self, style: str, seed: int, switch_every: int = 1):
+        styles = _load_styles()
+        if not styles:
+            return ("", "", "none")
+
+        if seed != 0:
+            random.seed(seed)
+
+        if style == "random":
+            if switch_every == 1:
+                idx = random.randint(0, len(styles) - 1)
+            else:
+                if self._counter == 0:
+                    self._current_idx = random.randint(0, len(styles) - 1)
+                elif self._counter >= switch_every:
+                    self._current_idx = (self._current_idx + 1) % len(styles)
+                    self._counter = 0
+                idx = self._current_idx
+            self._counter += 1
+        else:
+            idx = next((i for i, s in enumerate(styles) if s["name"] == style), 0)
+
+        chosen = styles[idx]
+        return (chosen["prompt"], chosen["negative_prompt"], chosen["name"])
+
+
 # Node class mapping for ComfyUI
 NODE_CLASS_MAPPINGS = {
     "PromptCycler": PromptCycler,
     "CheckpointCycler": CheckpointCycler,
+    "StyleCycler": StyleCycler,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "PromptCycler": "Prompt Cycler",
     "CheckpointCycler": "Checkpoint Cycler",
+    "StyleCycler": "Style Cycler",
 }
