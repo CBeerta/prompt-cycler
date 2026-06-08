@@ -32,7 +32,7 @@ class PromptCycler:
             "A serene lake with mountains reflected in the water",
             "A steampunk laboratory with brass gears and steam",
             "A magical garden with glowing flowers and butterflies",
-            "A battlefield in the morning dusk littered with corpses"
+            "A battlefield in the morning dusk littered with corpses",
         ]
 
         self.current_index = 0
@@ -46,29 +46,22 @@ class PromptCycler:
 
         return {
             "required": {
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "step": 1,
-                    "display": "number"
-                }),
-                "filename": (filenames, {
-                    "default": filenames[0]
-                }),
-                "prompt_index": ("INT", {
-                    "default": 0,
-                    "min": -1,
-                    "display": "number"
-                })
+                "seed": (
+                    "INT",
+                    {
+                        "default": 0,
+                        "min": 0,
+                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "step": 1,
+                        "display": "number",
+                    },
+                ),
+                "filename": (filenames, {"default": filenames[0]}),
+                "prompt_index": ("INT", {"default": 0, "min": -1, "display": "number"}),
             },
             "optional": {
-                "append": ("STRING", {
-                    "default": ""
-                }),
-                "trigger_words": ("STRING", {
-                    "default": ""
-                }),
+                "append": ("STRING", {"default": ""}),
+                "trigger_words": ("STRING", {"default": ""}),
             },
         }
 
@@ -79,7 +72,14 @@ class PromptCycler:
 
     seed = 0
 
-    def cycle_prompt(self, seed: int, append: str, trigger_words: str, prompt_index: int, filename: str = ""):
+    def cycle_prompt(
+        self,
+        seed: int,
+        append: str,
+        trigger_words: str,
+        prompt_index: int,
+        filename: str = "",
+    ):
         """
         Cycle through prompts and return the current one.
         Supports infinite number of prompts via custom_prompts input.
@@ -122,9 +122,9 @@ class PromptCycler:
             cycle_index = random.randint(0, len(prompts_to_use) - 1)
             prompt = prompts_to_use[cycle_index] + ", " + appends
 
-        if ';' in prompt:
-            description = prompt.split(';')[0].strip()
-            prompt = prompt.split(';')[1]
+        if ";" in prompt:
+            description = prompt.split(";")[0].strip()
+            prompt = prompt.split(";")[1]
         else:
             description = "n/a"
 
@@ -141,22 +141,24 @@ class CheckpointCycler:
 
         return {
             "required": {
-                "pattern": ("STRING", {
-                    "default": ".",
-                    "multiline": False,
-                }),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "step": 1,
-                    "display": "number"
-                }),
-                "switch_every": ("INT", {
-                    "default": 1,
-                    "min": 1,
-                    "display": "number"
-                }),
+                "pattern": (
+                    "STRING",
+                    {
+                        "default": ".",
+                        "multiline": False,
+                    },
+                ),
+                "seed": (
+                    "INT",
+                    {
+                        "default": 0,
+                        "min": 0,
+                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "step": 1,
+                        "display": "number",
+                    },
+                ),
+                "switch_every": ("INT", {"default": 1, "min": 1, "display": "number"}),
             },
         }
 
@@ -221,21 +223,22 @@ class StyleCycler:
         style_names = [s["name"] for s in styles]
         return {
             "required": {
-                "style": (["random"] + style_names, {
-                    "default": "random"
-                }),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "step": 1,
-                    "display": "number"
-                }),
-                "switch_every": ("INT", {
-                    "default": 5,
-                    "min": 1,
-                    "display": "number"
-                }),
+                "style": (["random"] + style_names, {"default": "random"}),
+                "seed": (
+                    "INT",
+                    {
+                        "default": 0,
+                        "min": 0,
+                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "step": 1,
+                        "display": "number",
+                    },
+                ),
+                "switch_every": ("INT", {"default": 5, "min": 1, "display": "number"}),
+            },
+            "optional": {
+                "prompt": ("STRING", {"default": ""}),
+                "negative_prompt": ("STRING", {"default": ""}),
             },
         }
 
@@ -244,7 +247,14 @@ class StyleCycler:
     FUNCTION = "cycle_style"
     CATEGORY = "text/prompt"
 
-    def cycle_style(self, style: str, seed: int, switch_every: int = 1):
+    def cycle_style(
+        self,
+        style: str,
+        seed: int,
+        switch_every: int = 1,
+        prompt: str = "",
+        negative_prompt: str = "",
+    ):
         styles = _load_styles()
         if not styles:
             return ("", "", "none")
@@ -267,7 +277,11 @@ class StyleCycler:
             idx = next((i for i, s in enumerate(styles) if s["name"] == style), 0)
 
         chosen = styles[idx]
-        return (chosen["prompt"], chosen["negative_prompt"], chosen["name"])
+        return (
+            "{}, {} ".format(prompt, chosen["prompt"]).lstrip(', '),
+            "{}, {} ".format(negative_prompt, chosen["negative_prompt"]).lstrip(', '),
+            chosen["name"],
+        )
 
 
 # Node class mapping for ComfyUI
