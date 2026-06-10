@@ -235,6 +235,7 @@ class StyleCycler:
                     },
                 ),
                 "switch_every": ("INT", {"default": 5, "min": 1, "display": "number"}),
+                "append_random": ("BOOLEAN", {"default": False}),
             },
             "optional": {
                 "prompt": ("STRING", {"default": ""}),
@@ -247,6 +248,16 @@ class StyleCycler:
     FUNCTION = "cycle_style"
     CATEGORY = "text/prompt"
 
+    @staticmethod
+    def _dedupe_join(*parts: str) -> str:
+        items: list[str] = []
+        for part in parts:
+            for s in part.split(", "):
+                s = s.strip()
+                if s and s not in items:
+                    items.append(s)
+        return ", ".join(items)
+
     def cycle_style(
         self,
         style: str,
@@ -254,6 +265,7 @@ class StyleCycler:
         switch_every: int = 1,
         prompt: str = "",
         negative_prompt: str = "",
+        append_random: bool = False,
     ):
         styles = _load_styles()
         if not styles:
@@ -277,11 +289,27 @@ class StyleCycler:
             idx = next((i for i, s in enumerate(styles) if s["name"] == style), 0)
 
         chosen = styles[idx]
-        return (
-            "{}, {} ".format(prompt, chosen["prompt"]).lstrip(', '),
-            "{}, {} ".format(negative_prompt, chosen["negative_prompt"]).lstrip(', '),
-            chosen["name"],
-        )
+        result_prompt = "{}, {} ".format(prompt, chosen["prompt"]).lstrip(", ")
+        result_neg = "{}, {} ".format(
+            negative_prompt, chosen["negative_prompt"]
+        ).lstrip(", ")
+        style_name = chosen["name"]
+
+        if append_random:
+            if len(styles) > 1:
+                rnd_idx = random.randint(0, len(styles) - 1)
+                while rnd_idx == idx:
+                    rnd_idx = random.randint(0, len(styles) - 1)
+            else:
+                rnd_idx = idx
+            rnd = styles[rnd_idx]
+            result_prompt = self._dedupe_join(prompt, chosen["prompt"], rnd["prompt"])
+            result_neg = self._dedupe_join(
+                negative_prompt, chosen["negative_prompt"], rnd["negative_prompt"]
+            )
+            style_name = f"{chosen['name']}, {rnd['name']}"
+
+        return (result_prompt, result_neg, style_name)
 
 
 # Node class mapping for ComfyUI

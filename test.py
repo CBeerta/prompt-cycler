@@ -61,7 +61,15 @@ if __name__ == "__main__":
 
     # Test specific style
     print(style_cycler.cycle_style(style="Plain", seed=0, switch_every=1))
-    print(style_cycler.cycle_style(style="Plain", seed=0, switch_every=1, prompt="abcdgeheim", negative_prompt="defgnicht"))
+    print(
+        style_cycler.cycle_style(
+            style="Plain",
+            seed=0,
+            switch_every=1,
+            prompt="abcdgeheim",
+            negative_prompt="defgnicht",
+        )
+    )
 
     # Test random with seed for reproducibility
     r1 = style_cycler.cycle_style(style="random", seed=42, switch_every=1)
@@ -79,3 +87,32 @@ if __name__ == "__main__":
     assert s1 == s2 == s3, "First 3 calls should return same style"
     # s4 may or may not differ depending on counter state
 
+    # --- append_random tests ---
+    print("\n\nappend_random:\n")
+
+    # Test append_random with a specific style
+    sc = StyleCycler()
+    a = sc.cycle_style(style="Plain", seed=42, switch_every=1)
+    b = sc.cycle_style(style="Plain", seed=42, switch_every=1, append_random=True)
+    print(f"without append_random: {a}")
+    print(f"with append_random:    {b}")
+    # append_random should produce a longer prompt with "+" in style_name
+    assert ", " in b[2], "append_random should join two style names"
+    assert b[0] != a[0], "append_random should produce a different prompt"
+
+    # Test dedup: same token should not appear twice
+    assert len(b[0].split(", ")) == len(
+        set(b[0].split(", "))
+    ), "append_random should dedupe prompt tokens"
+
+    # Test append_random with style="random" produces two random styles
+    sc2 = StyleCycler()
+    c = sc2.cycle_style(style="random", seed=99, switch_every=1)
+    d = sc2.cycle_style(style="random", seed=99, switch_every=1, append_random=True)
+    print(f"random without append_random: {c}")
+    print(f"random with append_random:    {d}")
+    assert ", " in d[2], "append_random with random style should join two random styles"
+    assert len(d[0]) > len(c[0]), "append_random should produce a longer prompt"
+    assert len(d[0].split(", ")) == len(
+        set(d[0].split(", "))
+    ), "append_random should dedupe prompt tokens"
