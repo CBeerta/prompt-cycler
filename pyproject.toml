@@ -3,12 +3,13 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tenitsky-prompt-cycler-simple"
+name = "prompt-cycler"
 version = "1.0.0"
-description = "A ComfyUI custom node that cycles through an infinite number of prompts"
+description = "A ComfyUI custom node pack with prompt, checkpoint, and style cyclers"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
+    {name = "Claus Beerta", email = "claus@beerta.de"},
     {name = "Anton Tenitsky", email = "anton.tenitsky@example.com"},
 ]
 classifiers = [
