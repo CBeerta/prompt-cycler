@@ -76,7 +76,7 @@ pip install -r requirements.txt
 
 Restart ComfyUI afterwards. All 3 nodes appear in the `"text/prompt"` category.
 
-Originally created by **Anton Tenitsky**. This fork maintains the project at [forgejo.svc.beerta.net](ssh://git@forgejo.svc.beerta.net:30022/claus/prompt-cycler.git).
+Originally created by **Anton Tenitsky**. This fork maintains the project at [forgejo.svc.beerta.net](https://forgejo.svc.beerta.net/claus/prompt-cycler).
 
 ## Development
 
