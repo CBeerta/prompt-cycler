@@ -216,6 +216,7 @@ class StyleCycler:
     def __init__(self):
         self._counter = 0
         self._current_idx = 0
+        self._append_idx = 0
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -280,13 +281,32 @@ class StyleCycler:
             else:
                 if self._counter == 0:
                     self._current_idx = random.randint(0, len(styles) - 1)
+                    if append_random:
+                        self._append_idx = random.randint(0, len(styles) - 1)
+                        while self._append_idx == self._current_idx:
+                            self._append_idx = (self._append_idx + 1) % len(styles)
                 elif self._counter >= switch_every:
                     self._current_idx = (self._current_idx + 1) % len(styles)
+                    if append_random:
+                        self._append_idx = (self._append_idx + 1) % len(styles)
+                        while self._append_idx == self._current_idx:
+                            self._append_idx = (self._append_idx + 1) % len(styles)
                     self._counter = 0
                 idx = self._current_idx
             self._counter += 1
         else:
             idx = next((i for i, s in enumerate(styles) if s["name"] == style), 0)
+            if append_random and switch_every > 1:
+                if self._counter == 0:
+                    self._append_idx = random.randint(0, len(styles) - 1)
+                    while self._append_idx == idx:
+                        self._append_idx = (self._append_idx + 1) % len(styles)
+                elif self._counter >= switch_every:
+                    self._append_idx = (self._append_idx + 1) % len(styles)
+                    while self._append_idx == idx:
+                        self._append_idx = (self._append_idx + 1) % len(styles)
+                    self._counter = 0
+                self._counter += 1
 
         chosen = styles[idx]
         result_prompt = "{}, {} ".format(prompt, chosen["prompt"]).lstrip(", ")
@@ -297,9 +317,12 @@ class StyleCycler:
 
         if append_random:
             if len(styles) > 1:
-                rnd_idx = random.randint(0, len(styles) - 1)
-                while rnd_idx == idx:
+                if switch_every > 1:
+                    rnd_idx = self._append_idx
+                else:
                     rnd_idx = random.randint(0, len(styles) - 1)
+                while rnd_idx == idx:
+                    rnd_idx = (rnd_idx + 1) % len(styles)
             else:
                 rnd_idx = idx
             rnd = styles[rnd_idx]
