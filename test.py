@@ -124,9 +124,7 @@ if __name__ == "__main__":
     sc3 = StyleCycler()
     results = []
     for i in range(6):
-        r = sc3.cycle_style(
-            style="Plain", seed=42, switch_every=3, append_random=True
-        )
+        r = sc3.cycle_style(style="Plain", seed=42, switch_every=3, append_random=True)
         results.append(r)
         print(f"  call {i+1}: {r[2]}")
 
@@ -151,9 +149,7 @@ if __name__ == "__main__":
     sc4 = StyleCycler()
     results2 = []
     for i in range(6):
-        r = sc4.cycle_style(
-            style="random", seed=77, switch_every=3, append_random=True
-        )
+        r = sc4.cycle_style(style="random", seed=77, switch_every=3, append_random=True)
         results2.append(r)
         print(f"  call {i+1}: {r[2]}")
 
@@ -173,8 +169,8 @@ if __name__ == "__main__":
     # The two names in the pair should be different (main != appended)
     names = results2[0][2].split(", ")
     assert len(names) == 2, f"Should have two style names: {names}"
-    assert names[0] != names[1], (
-        f"Main and appended styles should be different: {names}"
-    )
+    assert (
+        names[0] != names[1]
+    ), f"Main and appended styles should be different: {names}"
 
     print("\n\nAll tests passed!")

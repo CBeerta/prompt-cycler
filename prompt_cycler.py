@@ -259,6 +259,23 @@ class StyleCycler:
                     items.append(s)
         return ", ".join(items)
 
+    def _next_cycled_index(self, switch_every, max_val, attr, exclude=None):
+        should_init = self._counter == 0
+        should_advance = self._counter >= switch_every
+
+        val = getattr(self, attr)
+        if switch_every == 1 or should_init:
+            val = random.randint(0, max_val - 1)
+        elif should_advance:
+            val = (val + 1) % max_val
+
+        if exclude is not None:
+            while val == exclude:
+                val = (val + 1) % max_val
+
+        setattr(self, attr, val)
+        return val
+
     def cycle_style(
         self,
         style: str,
@@ -276,37 +293,19 @@ class StyleCycler:
             random.seed(seed)
 
         if style == "random":
-            if switch_every == 1:
-                idx = random.randint(0, len(styles) - 1)
-            else:
-                if self._counter == 0:
-                    self._current_idx = random.randint(0, len(styles) - 1)
-                    if append_random:
-                        self._append_idx = random.randint(0, len(styles) - 1)
-                        while self._append_idx == self._current_idx:
-                            self._append_idx = (self._append_idx + 1) % len(styles)
-                elif self._counter >= switch_every:
-                    self._current_idx = (self._current_idx + 1) % len(styles)
-                    if append_random:
-                        self._append_idx = (self._append_idx + 1) % len(styles)
-                        while self._append_idx == self._current_idx:
-                            self._append_idx = (self._append_idx + 1) % len(styles)
-                    self._counter = 0
-                idx = self._current_idx
-            self._counter += 1
+            idx = self._next_cycled_index(switch_every, len(styles), "_current_idx")
         else:
             idx = next((i for i, s in enumerate(styles) if s["name"] == style), 0)
-            if append_random and switch_every > 1:
-                if self._counter == 0:
-                    self._append_idx = random.randint(0, len(styles) - 1)
-                    while self._append_idx == idx:
-                        self._append_idx = (self._append_idx + 1) % len(styles)
-                elif self._counter >= switch_every:
-                    self._append_idx = (self._append_idx + 1) % len(styles)
-                    while self._append_idx == idx:
-                        self._append_idx = (self._append_idx + 1) % len(styles)
-                    self._counter = 0
-                self._counter += 1
+
+        if append_random and len(styles) > 1:
+            rnd_idx = self._next_cycled_index(
+                switch_every, len(styles), "_append_idx", exclude=idx
+            )
+
+        if switch_every > 1 and (style == "random" or append_random):
+            if self._counter >= switch_every:
+                self._counter = 0
+            self._counter += 1
 
         chosen = styles[idx]
         result_prompt = "{}, {} ".format(prompt, chosen["prompt"]).lstrip(", ")
@@ -317,20 +316,22 @@ class StyleCycler:
 
         if append_random:
             if len(styles) > 1:
-                if switch_every > 1:
-                    rnd_idx = self._append_idx
-                else:
-                    rnd_idx = random.randint(0, len(styles) - 1)
-                while rnd_idx == idx:
-                    rnd_idx = (rnd_idx + 1) % len(styles)
+                rnd = styles[rnd_idx]
+                result_prompt = self._dedupe_join(
+                    prompt, chosen["prompt"], rnd["prompt"]
+                )
+                result_neg = self._dedupe_join(
+                    negative_prompt,
+                    chosen["negative_prompt"],
+                    rnd["negative_prompt"],
+                )
+                style_name = f"{chosen['name']}, {rnd['name']}"
             else:
-                rnd_idx = idx
-            rnd = styles[rnd_idx]
-            result_prompt = self._dedupe_join(prompt, chosen["prompt"], rnd["prompt"])
-            result_neg = self._dedupe_join(
-                negative_prompt, chosen["negative_prompt"], rnd["negative_prompt"]
-            )
-            style_name = f"{chosen['name']}, {rnd['name']}"
+                result_prompt = self._dedupe_join(prompt, chosen["prompt"])
+                result_neg = self._dedupe_join(
+                    negative_prompt, chosen["negative_prompt"]
+                )
+                style_name = chosen["name"]
 
         return (result_prompt, result_neg, style_name)
 
