@@ -30,9 +30,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/tenitsky/tenitsky-prompt-cycler-simple"
-Repository = "https://github.com/tenitsky/tenitsky-prompt-cycler-simple"
-Issues = "https://github.com/tenitsky/tenitsky-prompt-cycler-simple/issues"
+Homepage = "https://forgejo.svc.beerta.net/claus/prompt-cycler"
+Repository = "https://forgejo.svc.beerta.net/claus/prompt-cycler"
+Issues = "https://forgejo.svc.beerta.net/claus/prompt-cycler/issues"
 
 [project.optional-dependencies]
 dev = [

@@ -69,12 +69,14 @@ Outputs `(prompt, negative_prompt, style_name)`.
 
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/tenitsky/tenitsky-prompt-cycler-simple.git
-cd tenitsky-prompt-cycler-simple
+git clone ssh://git@forgejo.svc.beerta.net:30022/claus/prompt-cycler.git
+cd prompt-cycler
 pip install -r requirements.txt
 ```
 
 Restart ComfyUI afterwards. All 3 nodes appear in the `"text/prompt"` category.
+
+Originally created by **Anton Tenitsky**. This fork maintains the project at [forgejo.svc.beerta.net](ssh://git@forgejo.svc.beerta.net:30022/claus/prompt-cycler.git).
 
 ## Development
 
