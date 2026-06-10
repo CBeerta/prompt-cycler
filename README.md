@@ -60,6 +60,7 @@ Cycles through styles loaded from a JSON file.
 | `switch_every` | INT | Stay on each style for N calls (1 = random every time) |
 | `prompt` | STRING | Base prompt to prepend the style prompt to |
 | `negative_prompt` | STRING | Base negative prompt to prepend the style's negative prompt to |
+| `append_random` | BOOLEAN | When `True`, append a second random style (deduped). Works with any `style` value including `"random"`. |
 
 Outputs `(prompt, negative_prompt, style_name)`.
 
