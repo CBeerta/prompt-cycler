@@ -221,7 +221,7 @@ class StyleCycler:
     @classmethod
     def INPUT_TYPES(cls):
         styles = _load_styles()
-        style_names = [s["name"] for s in styles]
+        style_names = [s["name"] for s in styles].sort()
         return {
             "required": {
                 "style": (["random"] + style_names, {"default": "random"}),
